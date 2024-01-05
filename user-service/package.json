@@ -1,0 +1,26 @@
+{
+  "name": "user-service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^3.12.10",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.3.1",
+    "@types/amqplib": "^0.10.2",
+    "@types/node": "^20.6.3",
+    "@types/node-cron": "^3.0.8",
+    "@types/nodemailer": "^6.4.11",
+    "amqplib": "^0.10.3",
+    "node-cron": "^3.0.2",
+    "nodemailer": "^6.9.5",
+    "prisma": "^5.3.1",
+    "tsup": "^7.2.0"
+  }
+}

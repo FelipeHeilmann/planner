@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id
+  name           String
+  email          String
+  password       String
+  imageUrl       String?   @map("image_url")
+  gender         String?
+  lastLoginAt    DateTime? @map("last_login_at")
+  disabledAt     DateTime? @map("disable_at")
+  birthDate      DateTime? @map("birth_date")
+  accessDuration Int       @map("access_duration")
+  isActive       Boolean   @map("is_active")
+  theme          String    @default("Blue")
+  isAdmin        Boolean   @default(false) @map("is_admin")
+  createdAt      DateTime  @map("created_at")
+  updatedAt      DateTime  @map("updated_at")
+  pagarmeId      String?   @map("pagarme_id")
+  levelId        Int       @map("level_id")
+  completedBible Int       @map("completed_bible")
+  origin         String?
+  isAffiliate    Boolean   @default(false) @map("is_affiliate")
+  points         Int
+
+  level        Level          @relation(fields: [levelId], references: [id])
+  Reading      Reading[]
+  Devotional   Devotional[]
+  Prayer       Prayer[]
+  Memorization Memorization[]
+  ReadingPlan  ReadingPlan[]
+  UserCoupon   UserCoupon[]
+  Coupon       Coupon[]
+
+  @@map("users")
+}
+
+model Prayer {
+  id          String     @id
+  title       String
+  description String
+  request     String
+  status      String
+  isFinished  Boolean    @default(false) @map("is_finished")
+  createdAt   DateTime   @map("created_at")
+  updatedAt   DateTime   @map("updated_at")
+  userDate    DateTime   @map("user_date")
+  timesPrayed DateTime[] @map("times_prayed")
+  userId      String     @map("user_id")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("prayers")
+}
+
+model Reading {
+  id            String   @id
+  userId        String   @map("user_id")
+  readingPlanId String?  @map("reading_plan_id")
+  duration      Int      @map("duration")
+  userDate      DateTime @map("user_date")
+  createdAt     DateTime @map("created_at")
+  updatedAt     DateTime @map("updated_at")
+
+  user        User          @relation(fields: [userId], references: [id])
+  ReadingBook ReadingBook[]
+  readingPlan ReadingPlan?  @relation(fields: [readingPlanId], references: [id])
+
+  @@map("readings")
+}
+
+model Devotional {
+  id          String   @id
+  userId      String   @map("user_id")
+  bookId      Int      @map("book_id")
+  subject     String
+  learned     String
+  application String
+  verses      Int[]
+  userDate    DateTime @map("user_date")
+  createdAt   DateTime @map("created_at")
+  updatedAt   DateTime @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@map("devotionals")
+}
+
+model Memorization {
+  id               String     @id
+  bookId           Int
+  userId           String
+  description      String?
+  verse            Int
+  status           String
+  isFinished       Boolean    @default(false) @map("is_finished")
+  timesMemorizated DateTime[] @map("times_memorizated")
+  createdAt        DateTime   @map("created_at")
+  updatedAt        DateTime   @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@map("memorizations")
+}
+
+model Book {
+  id          Int    @id @default(autoincrement())
+  name        String
+  chapter     Int
+  words       Int
+  verses      Int
+  testamentId Int    @map("testament_id")
+
+  Devotional Devotional[]
+
+  testament    Testament      @relation(fields: [testamentId], references: [id])
+  Memorization Memorization[]
+  ReadingBook  ReadingBook[]
+
+  @@map("books")
+}
+
+model ReadingBook {
+  id        String @id
+  readingId String @map("reading_id")
+  bookId    Int    @map("book_id")
+
+  book    Book    @relation(fields: [bookId], references: [id])
+  reading Reading @relation(fields: [readingId], references: [id], onDelete: Cascade)
+
+  @@map("reading_books")
+}
+
+model ReadingPlan {
+  id                String   @id
+  name              String
+  planOf            String   @map("plan_of")
+  userId            String   @map("user_id")
+  book              String?
+  status            String
+  testamentId       Int?     @map("testament_id")
+  readingGoalPerDay Int      @map("reading_goal_plan_per_day")
+  createdAt         DateTime @map("created_at")
+  endDate           DateTime @map("end_at")
+  updatedAt         DateTime @map("updated_at")
+
+  user      User       @relation(fields: [userId], references: [id])
+  testament Testament? @relation(fields: [testamentId], references: [id])
+  Reading   Reading[]
+
+  @@map("readings_plans")
+}
+
+model Level {
+  id          Int    @id
+  name        String
+  description String
+  minPoints   Int    @map("min_points")
+  imageUrl    String @map("image_url")
+  User        User[]
+
+  @@map("levels")
+}
+
+model UserCompletedBook {
+  id         String     @id
+  book       String
+  userId     String     @map("user_id")
+  startedAt  DateTime[] @map("started_at")
+  finishedAt DateTime[] @map("finished_at")
+  completed  Int
+
+  @@map("user_completed_books")
+}
+
+model Testament {
+  id          Int           @id
+  name        String
+  Book        Book[]
+  ReadingPlan ReadingPlan[]
+
+  @@map("testament")
+}
+
+model Coupon {
+  id                    String       @id
+  name                  String
+  value                 Int
+  use                   Int
+  affiliateId           String?      @map("affiliate_id")
+  percentageToAffiliate Float?       @map("percentage_to_affiliate")
+  isValid               Boolean      @map("is_valid")
+  createdAt             DateTime     @map("created_at")
+  dueAt                 DateTime?    @map("due_at")
+  UserCoupon            UserCoupon[]
+  affiliate             User?        @relation(fields: [affiliateId], references: [id])
+
+  @@map("coupons")
+}
+
+model UserCoupon {
+  id       String    @id
+  couponId String    @map("coupon_id")
+  userId   String    @map("user_id")
+  status   String
+  total    Float
+  date     DateTime?
+  user     User      @relation(fields: [userId], references: [id])
+  coupon   Coupon    @relation(fields: [couponId], references: [id])
+
+  @@map("users_coupons")
+}
+
+model AffiliatePayment {
+  id       String   @id
+  date     DateTime
+  value    Float
+  couponId String   @map("coupon_id")
+
+  @@map("affiliate_payments")
+}
